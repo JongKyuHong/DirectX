@@ -1,0 +1,38 @@
+# Visual Studio user and workspace state
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.VC.opendb
+*.opendb
+*.ipch
+
+# JetBrains Rider / ReSharper
+.idea/
+
+# Visual C++ build outputs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.tlog
+*.lastbuildstate
+*.log
+*.exe
+*.dll
+*.lib
+*.exp
+
+# CMake / Visual Studio generated files, if added later
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
