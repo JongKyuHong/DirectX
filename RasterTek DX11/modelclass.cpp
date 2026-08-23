@@ -84,29 +84,24 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	m_indexCount = 3;
 
 	vertices = new VertexType[m_vertexCount];
-	if(!vertices)
-	{
-		return false;
-	}
 
 	indices = new unsigned long[m_indexCount];
-	if(!indices)
-	{
-		return false;
-	}
-	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // 좌하단.
 
+	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);
 	vertices[0].texture = XMFLOAT2(0.0f, 1.0f);
-	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);  // 상단 중앙.
+	vertices[0].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
+	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	vertices[1].texture = XMFLOAT2(0.5f, 0.0f);
-	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // 우하단.
+	vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
+	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);
 	vertices[2].texture = XMFLOAT2(1.0f, 1.0f);
+	vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
-	indices[0] = 0;  
-	indices[1] = 1;  
-	indices[2] = 2;  
+	indices[0] = 0;
+	indices[1] = 1;
+	indices[2] = 2;
 
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
@@ -178,7 +173,7 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 	stride = sizeof(VertexType); 
 	offset = 0;
-
+    
 	deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 
 	deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -197,7 +192,7 @@ bool ModelClass::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceCo
 	m_Texture = new TextureClass;
 
 	result = m_Texture->Initialize(device, deviceContext, filename);
-	if(!result)
+	if (!result)
 	{
 		return false;
 	}
@@ -215,4 +210,5 @@ void ModelClass::ReleaseTexture()
 		m_Texture = 0;
 	}
 
+	return;
 }
