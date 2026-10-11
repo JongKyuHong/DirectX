@@ -23,9 +23,9 @@ ApplicationClass::~ApplicationClass()
 
 bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
+	char modelFilename[128];
 	char textureFilename[128];
 	bool result;
-
 
 	m_Direct3D = new D3DClass;
 
@@ -38,13 +38,14 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	m_Camera = new CameraClass;
 
-	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
 
-	strcpy_s(textureFilename, "stone01.tga");
+	strcpy_s(modelFilename, "Engine/data/cube.txt");
+	strcpy_s(textureFilename, "Engine/data/stone01.tga");
 
 	m_Model = new ModelClass;
 
-	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), textureFilename);
+	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFilename, textureFilename);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -112,9 +113,9 @@ bool ApplicationClass::Frame()
 {
 	static float rotation = 0.0f;
 	bool result;
-
-
-	rotation -= 0.0174532925f * 0.1f;
+	
+	// 큐브 회전값 매 프레임 갱신
+	rotation -= 0.0174532925f * 0.25f;
 	if(rotation < 0.0f)
 	{
 		rotation += 360.0f;
@@ -132,10 +133,9 @@ bool ApplicationClass::Frame()
 
 bool ApplicationClass::Render(float rotation)
 {
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, rotateMatrix, translateMatrix, scaleMatrix, srMatrix;
 	bool result;
-
-
+	
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
 	m_Camera->Render();
@@ -144,8 +144,11 @@ bool ApplicationClass::Render(float rotation)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
-	worldMatrix = XMMatrixRotationY(rotation);
+	rotateMatrix = XMMatrixRotationY(rotation);
+	translateMatrix = XMMatrixTranslation(-2.0f, 0.0f, 0.0f);
 
+	worldMatrix = XMMatrixMultiply(rotateMatrix, translateMatrix);
+	
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
 	result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),
@@ -154,7 +157,14 @@ bool ApplicationClass::Render(float rotation)
 	{
 		return false;
 	}
+	
+	scaleMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
+	rotateMatrix = XMMatrixRotationY(rotation);
+	translateMatrix = XMMatrixTranslation(2.0f, 0.0f, 0.0f);
 
+	srMatrix = XMMatrixMultiply(scaleMatrix, rotateMatrix);
+	worldMatrix = XMMatrixMultiply(srMatrix, translateMatrix);
+	
 	m_Direct3D->EndScene();
 
 	return true;
