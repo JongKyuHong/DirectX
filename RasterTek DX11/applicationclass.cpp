@@ -6,7 +6,8 @@ ApplicationClass::ApplicationClass()
 	m_Direct3D = 0;
 	m_Camera = 0;
 	m_TextureShader = 0;
-	m_Bitmap = 0;
+	m_Sprite = 0;
+	m_Timer = 0;
 }
 
 
@@ -22,7 +23,7 @@ ApplicationClass::~ApplicationClass()
 
 bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
-	char bitmapFilename[128];
+	char spriteFilename[128];
 	bool result;
 
 	m_Direct3D = new D3DClass;
@@ -47,29 +48,38 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	strcpy_s(bitmapFilename, "Engine/data/stone01.tga");
+	strcpy_s(spriteFilename, "../Engine/data/sprite_data_01.txt");
 
-	m_Bitmap = new BitmapClass;
+	// sprite 객체를 생성하고 초기화한다.
+	m_Sprite = new SpriteClass;
 
-	result = m_Bitmap->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), screenWidth, screenHeight,
-								 bitmapFilename, 150, 80);
+	result = m_Sprite->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), screenWidth, screenHeight, spriteFilename, 50, 50);
 	if(!result)
 	{
-		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
 		return false;
 	}
-	m_Bitmap->SetRenderSize(256, 256);
+
+	// timer 객체를 생성하고 초기화한다.
+	m_Timer = new TimerClass;
+
+	result = m_Timer->Initialize();
 	return true;
 }
 
 
 void ApplicationClass::Shutdown()
 {
-	if(m_Bitmap)
+	if(m_Timer)
 	{
-		m_Bitmap->Shutdown();
-		delete m_Bitmap;
-		m_Bitmap = 0;
+		delete m_Timer;
+		m_Timer = 0;
+	}
+	
+	if(m_Sprite)
+	{
+		m_Sprite->Shutdown();
+		delete m_Sprite;
+		m_Sprite = 0;
 	}
 
 	if(m_TextureShader)
@@ -98,7 +108,17 @@ void ApplicationClass::Shutdown()
 
 bool ApplicationClass::Frame()
 {
+	float frameTime;
 	bool result;
+	
+	// 시스템 통계를 갱신한다.
+	m_Timer->Frame();
+
+	// 현재 프레임 시간을 가져온다.
+	frameTime = m_Timer->GetTime();
+
+	// 프레임 시간을 사용해 스프라이트 객체를 갱신한다.
+	m_Sprite->Update(frameTime);
 
 	result = Render();
 	if(!result)
@@ -123,14 +143,13 @@ bool ApplicationClass::Render()
 
 	m_Direct3D->TurnZBufferOff();
 
-	result = m_Bitmap->Render(m_Direct3D->GetDeviceContext());
+	result = m_Sprite->Render(m_Direct3D->GetDeviceContext());
 	if(!result)
 	{
 		return false;
 	}
 
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, viewMatrix,
-								   orthoMatrix, m_Bitmap->GetTexture());
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Sprite->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_Sprite->GetTexture());
 	if(!result)
 	{
 		return false;
